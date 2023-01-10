@@ -168,8 +168,7 @@ void invokeAddBiasConcatClsTokenAddPosEmbed(const T*     in,
                                             const int    s,
                                             cudaStream_t stream)
 {
-    if (threadIdx.x == 0)
-        printf("[INFO] invokeAddBiasConcatClsTokenAddPosEmbed %s:%d\n", __FILE__, __LINE__);
+    printf("[INFO] invokeAddBiasConcatClsTokenAddPosEmbed %s:%d\n", __FILE__, __LINE__);
     const int data_type_factor = 4 / sizeof(T);  // 1 for fp32, 2 for fp16
     dim3      block, grid;
     if (n / 4 / data_type_factor <= 1024) {
@@ -180,8 +179,7 @@ void invokeAddBiasConcatClsTokenAddPosEmbed(const T*     in,
         block.x = 1024;
         grid.x  = (m * n + 1023) / 1024;
     }
-    if (threadIdx.x == 0)
-        printf("block.x = %d, grid.x = %d\n", block.x, grid.x);
+    printf("block.x = %d, grid.x = %d\n", block.x, grid.x);
     add_bias_concat_clstoken_add_posembed<<<grid, block, 0, stream>>>(
         in, out, bias, cls_token, pos_embed, m, n / data_type_factor, s);
 }
