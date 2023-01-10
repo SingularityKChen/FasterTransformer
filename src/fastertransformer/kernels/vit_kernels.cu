@@ -16,6 +16,8 @@
 
 #include "src/fastertransformer/kernels/vit_kernels.h"
 #include "src/fastertransformer/utils/cuda_utils.h"
+#include <iostream>
+
 namespace fastertransformer {
 
 template<typename T>
@@ -90,9 +92,30 @@ __global__ void add_bias_concat_clstoken_add_posembed(const T* __restrict in,   
 
         if (slice_row_idx == concat_row_idx) {
             out[id] = __ldg(&cls_token[col_idx]) + __ldg(&pos_embed[idx_s]);
+            FT_LOG_INFO("cls_token[%d] = %f\n"
+                        "pos_embed[%d] = %f\n"
+                        "out[%d] = %f\n",
+                        col_idx,
+                        __ldg(&cls_token[col_idx]),
+                        idx_s,
+                        __ldg(&pos_embed[idx_s]),
+                        id,
+                        out[id]);
         }
         else {
             out[id] = __ldg(&in[idx_i]) + __ldg(&bias[col_idx]) + __ldg(&pos_embed[idx_s]);
+            FT_LOG_INFO("in[%d] = %f\n"
+                        "bias[%d] = %f\n"
+                        "pos_embed[%d] = %f\n"
+                        "out[%d] = %f\n",
+                        idx_i,
+                        __ldg(&in[idx_i]),
+                        col_idx,
+                        __ldg(&bias[col_idx]),
+                        idx_s,
+                        __ldg(&pos_embed[idx_s]),
+                        id,
+                        out[id]);
         }
     }
 }
