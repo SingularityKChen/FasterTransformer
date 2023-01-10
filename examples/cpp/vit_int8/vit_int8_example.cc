@@ -143,6 +143,7 @@ void test(int batch_size,
     CudaTimer cuda_timer(stream);
     cuda_timer.start();
     for (int i = 0; i < ite; i++) {
+        FT_LOG_INFO("[INFO] iteration %d\n", i);
         vit->forward(&output_tensors, &input_tensors, &params);
     }
     float total_time = cuda_timer.stop();

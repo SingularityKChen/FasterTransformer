@@ -20,6 +20,7 @@
 #include "src/fastertransformer/kernels/layernorm_int8_kernels.h"
 #include "src/fastertransformer/kernels/layout_transformer_int8_kernels.h"
 #include "src/fastertransformer/kernels/vit_kernels.h"
+#include <iostream>
 
 #define SAFE_FREE(x)                                                                                                   \
     if (x) {                                                                                                           \
@@ -500,12 +501,16 @@ void ViTTransformerINT8<T>::patchEmbed(T*        output,
                                        const int in_chans,
                                        const int embed_dim)
 {
+    printf("[INFO] PatchEmbed %s:%d\n", __FILE__, __LINE__);
     T* tmp_buf = with_cls_token_ ? (output == embed_buf_1_ ? embed_buf_2_ : embed_buf_1_) : output;
     conv2d(
         tmp_buf, input, kernel, batch, img_size, img_size, in_chans, embed_dim, patch_size, patch_size, cudnn_handle_);
     int n = embed_dim;
     int s = seq_len;
     int m = batch * s;
+    printf("n = %d ", n);
+    printf("s = %d ", s);
+    printf("m = %d\n", m);
     if (with_cls_token_) {
         FT_CHECK(cls_embed != nullptr);
         invokeAddBiasConcatClsTokenAddPosEmbed(tmp_buf, output, bias, cls_embed, pos_embed, m, n, s, stream_);
