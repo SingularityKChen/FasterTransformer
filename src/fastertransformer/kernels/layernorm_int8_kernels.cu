@@ -217,6 +217,8 @@ __global__ void add_bias_input_layernorm_COL32_int8IO(int8_t*       output,
                                                       const float*  input2_deQFactor_ptr,
                                                       const float*  output_scale_ptr)
 {
+    if (threadIdx.x == 0)
+        printf("[INFO] add_bias_input_layernorm_COL32_int8IO %s:%d\n", __FILE__, __LINE__);
     const float input1_deQFactor = __ldg(input1_deQFactor_ptr);
     const float input2_deQFactor = __ldg(input2_deQFactor_ptr);
     const float output_scale     = __ldg(output_scale_ptr);
@@ -1493,6 +1495,8 @@ template<>
 __global__ void layernorm_COL32_DataTypeI_int8O(
     int8_t* out, const half2* input, const half2* gamma, const half2* beta, int m, int n, const float* output_scale_ptr)
 {
+//    if (threadIdx.x == 0)
+//        printf("[INFO] layernorm_COL32_DataTypeI_int8O %s:%d\n", __FILE__, __LINE__);
     const float output_scale = __ldg(output_scale_ptr);
     int         col_start    = threadIdx.x << 1;
     bool        qual         = (col_start < n);
@@ -1532,7 +1536,13 @@ __global__ void layernorm_COL32_DataTypeI_int8O(
         half2 betaTmp  = beta[threadIdx.x];
         local_out[0] =
             (local_out[0] - s_mean) * s_variance * static_cast<float>(gammaTmp.x) + static_cast<float>(betaTmp.x);
+//        if (threadIdx.x == 0)
+//            printf("local_out = %f, s_mean = %f, s_variance = %f, gama = %f, beta = %f\n",
+//                local_out[0], s_mean, s_variance, static_cast<float>(gammaTmp.x), static_cast<float>(betaTmp.x));
         outTmp.x = float_to_int8_rn(local_out[0] * output_scale);
+//        if (threadIdx.x == 0)
+//            printf("out = %f, out_scale = %f, local_out = %f\n",
+//                   outTmp.x, output_scale, local_out[0]);
 
         local_out[1] =
             (local_out[1] - s_mean) * s_variance * static_cast<float>(gammaTmp.y) + static_cast<float>(betaTmp.y);
@@ -1552,6 +1562,7 @@ void invokeLayernormCol32(int8_t*      out,
                           const float* output_scale_ptr,
                           cudaStream_t stream)
 {
+    printf("[INFO] invokeLayernormCol32 %s:%d\n", __FILE__, __LINE__);
     dim3 grid(m);
     int  blockSize = (n / 4 + 31) / 32 * 32;
     dim3 block(blockSize);

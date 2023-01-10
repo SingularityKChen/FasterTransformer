@@ -121,8 +121,8 @@ __global__ void add_bias_concat_clstoken_add_posembed(const half* __restrict in,
                                                       const int s,  // h*w+1
                                                       bool      on_top)
 {
-    if (threadIdx.x == 0)
-        printf("[INFO] add_bias_concat_clstoken_add_posembed %s:%d\n", __FILE__, __LINE__);
+//    if (threadIdx.x == 0)
+//        printf("[INFO] add_bias_concat_clstoken_add_posembed %s:%d\n", __FILE__, __LINE__);
     const int    concat_row_idx = on_top ? 0 : (s - 1);
     const int    offset         = on_top ? 1 : 0;
     half2*       out_ptr        = (half2*)out;
