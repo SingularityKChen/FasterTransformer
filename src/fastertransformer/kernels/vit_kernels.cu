@@ -92,31 +92,20 @@ __global__ void add_bias_concat_clstoken_add_posembed(const T* __restrict in,   
 
         if (slice_row_idx == concat_row_idx) {
             out[id] = __ldg(&cls_token[col_idx]) + __ldg(&pos_embed[idx_s]);
-            FT_LOG_INFO("cls_token[%d] = %f\n"
-                        "pos_embed[%d] = %f\n"
-                        "out[%d] = %f\n",
-                        col_idx,
-                        __ldg(&cls_token[col_idx]),
-                        idx_s,
-                        __ldg(&pos_embed[idx_s]),
-                        id,
-                        out[id]);
+            if (threadIdx.x == 0) {
+                printf("cls_token[%d] = %f\n", col_idx, __ldg(&cls_token[col_idx]));
+                printf("pos_embed[%d] = %f\n", idx_s,   __ldg(&pos_embed[idx_s]));
+                printf("out[%d] = %f\n",       id,      out[id]);
+            }
         }
         else {
             out[id] = __ldg(&in[idx_i]) + __ldg(&bias[col_idx]) + __ldg(&pos_embed[idx_s]);
-            FT_LOG_INFO("in[%d] = %f\n"
-                        "bias[%d] = %f\n"
-                        "pos_embed[%d] = %f\n"
-                        "out[%d] = %f\n",
-                        idx_i,
-                        __ldg(&in[idx_i]),
-                        col_idx,
-                        __ldg(&bias[col_idx]),
-                        idx_s,
-                        __ldg(&pos_embed[idx_s]),
-                        id,
-                        out[id]);
-        }
+            if (threadIdx.x == 0) {
+                printf("in[%d] = %f\n",        idx_i,   __ldg(&in[idx_i]));
+                printf("bias[%d] = %f\n",      col_idx, __ldg(&bias[col_idx]));
+                printf("pos_embed[%d] = %f\n", idx_s,   __ldg(&pos_embed[idx_s]));
+                printf("out[%d] = %f\n",       id,      out[id]);
+            }
     }
 }
 
@@ -131,6 +120,8 @@ __global__ void add_bias_concat_clstoken_add_posembed(const half* __restrict in,
                                                       const int s,  // h*w+1
                                                       bool      on_top)
 {
+    if (threadIdx.x == 0)
+        printf("[INFO] add_bias_concat_clstoken_add_posembed %s:%d\n", __FILE__, __LINE__);
     const int    concat_row_idx = on_top ? 0 : (s - 1);
     const int    offset         = on_top ? 1 : 0;
     half2*       out_ptr        = (half2*)out;
@@ -151,12 +142,16 @@ __global__ void add_bias_concat_clstoken_add_posembed(const half* __restrict in,
             half2 d1    = __ldg(&token_ptr[col_idx]);
             half2 d2    = __ldg(&embed_ptr[idx_s]);
             out_ptr[id] = __hadd2(d1, d2);
+//            if (threadIdx.x == 0)
+//                printf("out_ptr[%d] = __hadd2(%d, %d) = %d\n", id, d1, d2, out_ptr[id]);
         }
         else {
             half2 d1    = __ldg(&in_ptr[idx_i]);
             half2 d2    = __ldg(&bias_ptr[col_idx]);
             half2 d3    = __ldg(&embed_ptr[idx_s]);
             out_ptr[id] = __hadd2(d3, __hadd2(d1, d2));
+//            if (threadIdx.x == 0)
+//                printf("out_ptr[%d] = __hadd2(%d, __hadd2(%d, %d)) = %d\n", id, d3, d1, d2, out_ptr[id]);
         }
     }
 }
@@ -172,6 +167,8 @@ void invokeAddBiasConcatClsTokenAddPosEmbed(const T*     in,
                                             const int    s,
                                             cudaStream_t stream)
 {
+    if (threadIdx.x == 0)
+        printf("[INFO] invokeAddBiasConcatClsTokenAddPosEmbed %s:%d\n", __FILE__, __LINE__);
     const int data_type_factor = 4 / sizeof(T);  // 1 for fp32, 2 for fp16
     dim3      block, grid;
     if (n / 4 / data_type_factor <= 1024) {
@@ -182,6 +179,8 @@ void invokeAddBiasConcatClsTokenAddPosEmbed(const T*     in,
         block.x = 1024;
         grid.x  = (m * n + 1023) / 1024;
     }
+    if (threadIdx.x == 0)
+        printf("block.x = %d, grid.x = %d\n", block.x, grid.x);
     add_bias_concat_clstoken_add_posembed<<<grid, block, 0, stream>>>(
         in, out, bias, cls_token, pos_embed, m, n / data_type_factor, s);
 }
