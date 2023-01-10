@@ -106,6 +106,7 @@ __global__ void add_bias_concat_clstoken_add_posembed(const T* __restrict in,   
                 printf("pos_embed[%d] = %f\n", idx_s,   __ldg(&pos_embed[idx_s]));
                 printf("out[%d] = %f\n",       id,      out[id]);
             }
+        }
     }
 }
 
