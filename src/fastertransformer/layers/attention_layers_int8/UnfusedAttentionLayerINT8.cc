@@ -35,7 +35,7 @@ void UnfusedAttentionLayerINT8<T>::forward(TensorMap*                output_tens
     // output_tensors:
     //      hidden_features [token_num, hidden_dimension]
     // If padding_offset.data is nullptr, then not remove padding
-
+    printf("[INFO]\033[94m UnfusedAttentionLayerINT8\033[0m->forward %s:%d\n", __FILE__, __LINE__);
     const ScaleList*     scale_list     = ((const AttentionINT8Weight<T>*)attention_weights)->scale_list_ptr;
     cublasINT8MMWrapper* cublas_wrapper = (cublasINT8MMWrapper*)cublas_wrapper_;
 

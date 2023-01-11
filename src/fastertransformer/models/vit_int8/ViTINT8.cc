@@ -323,6 +323,7 @@ void ViTTransformerINT8<T>::forward(std::vector<Tensor>*       output_tensors,
     invokeTransposeMatrixColMajorToCOL32(from_buf, encoder_input_ptr, embed_dim_, h_token_num, stream_);
 
     for (uint i = 0; i < num_layer_; i++) {
+        printf("[INFO]\033[95m layer %d\033[0m\n", i);
         const ScaleList* scalePtr = &(weights->vit_layer_weights[i].scale_list_);
 
         invokeLayernormCol32((int8_t*)norm_out_buf,
@@ -501,7 +502,7 @@ void ViTTransformerINT8<T>::patchEmbed(T*        output,
                                        const int in_chans,
                                        const int embed_dim)
 {
-    printf("[INFO] PatchEmbed %s:%d\n", __FILE__, __LINE__);
+    printf("[INFO]\033[94m PatchEmbed\033[0m %s:%d\n", __FILE__, __LINE__);
     T* tmp_buf = with_cls_token_ ? (output == embed_buf_1_ ? embed_buf_2_ : embed_buf_1_) : output;
     conv2d(
         tmp_buf, input, kernel, batch, img_size, img_size, in_chans, embed_dim, patch_size, patch_size, cudnn_handle_);

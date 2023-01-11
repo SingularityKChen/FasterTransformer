@@ -351,6 +351,7 @@ void FusedAttentionLayerINT8<T>::forward(TensorMap*                output_tensor
     //      padding_offset [token_num]
     // output_tensors:
     //      hidden_features (token_num, hidden_dimension)
+    printf("[INFO]\033[94m FusedAttentionLayerINT8\033[0m->forward %s:%d\n", __FILE__, __LINE__);
 
     const ScaleList*     scale_list     = ((const AttentionINT8Weight<T>*)attention_weights)->scale_list_ptr;
     cublasINT8MMWrapper* cublas_wrapper = (cublasINT8MMWrapper*)cublas_wrapper_;
