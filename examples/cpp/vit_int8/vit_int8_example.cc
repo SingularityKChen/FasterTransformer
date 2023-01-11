@@ -131,9 +131,9 @@ void test(int batch_size,
                                    output_d}};
 
     // warmup
-    for (int i = 0; i < 1; i++) {
-        vit->forward(&output_tensors, &input_tensors, &params);
-    }
+//    for (int i = 0; i < 1; i++) {
+//        vit->forward(&output_tensors, &input_tensors, &params);
+//    }
 
     int       ite = 1;
     CudaTimer cuda_timer(stream);

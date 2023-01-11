@@ -92,6 +92,7 @@ void cublasINT8MMWrapper::Gemm(int*          res,
                                const int8_t* ATransform,
                                const int8_t* kernel)
 {
+    printf("[INFO] cublasINT8MMWrapper->\033[92mGemm\033[0m %s:%d\n", __FILE__, __LINE__);
     mu_->lock();
     cublasOperation_t opTranspose = CUBLAS_OP_T;
 #if (CUDART_VERSION >= 11000)
@@ -268,6 +269,7 @@ void cublasINT8MMWrapper::Gemm(int8_t*       res,
                                const int8_t* ATransform,
                                const int8_t* kernel)
 {
+    printf("[INFO] cublasINT8MMWrapper->\033[92mGemm \033[0m%s:%d\n", __FILE__, __LINE__);
     mu_->lock();
     cublasOperation_t opTranspose = CUBLAS_OP_T;
     // int8 gemm does not support CUBLAS_POINTER_MODE_DEVICE

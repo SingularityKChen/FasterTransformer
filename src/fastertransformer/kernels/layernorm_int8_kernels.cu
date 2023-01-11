@@ -1153,6 +1153,7 @@ void invokeAddBiasResidualPreLayerNormCol32(int8_t*       output,
                                             const float   dqScaleIn,
                                             const float   qScale)
 {
+    printf("[INFO]\033[92m invokeAddBiasResidualPreLayerNormCol32\033[0m %s:%d\n", __FILE__, __LINE__);
     dim3          grid(m);
     constexpr int VPT = 16 / sizeof(__half);
     if (n <= VPT * 32 && n % VPT == 0) {
@@ -1365,6 +1366,7 @@ void invokeAddBiasResidualPreLayerNormCol32(int8_t*      output,
                                             const float* input1_amax_ptr,
                                             const float* output_scale_ptr)
 {
+    printf("[INFO]\033[92m invokeAddBiasResidualPreLayerNormCol32\033[0m %s:%d\n", __FILE__, __LINE__);
     dim3 grid(m);
     int  blockSize = (n / 4 + 31) / 32 * 32;
     dim3 block(blockSize);
@@ -1562,7 +1564,7 @@ void invokeLayernormCol32(int8_t*      out,
                           const float* output_scale_ptr,
                           cudaStream_t stream)
 {
-    printf("[INFO] invokeLayernormCol32 %s:%d\n", __FILE__, __LINE__);
+    printf("[INFO]\033[92m invokeLayernormCol32\033[0m %s:%d\n", __FILE__, __LINE__);
     dim3 grid(m);
     int  blockSize = (n / 4 + 31) / 32 * 32;
     dim3 block(blockSize);

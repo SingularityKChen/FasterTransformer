@@ -26,6 +26,7 @@ void FfnLayerINT8<T>::forward(std::vector<fastertransformer::Tensor>*       outp
 {
     // input_tensors: [input (token_num, hidden_dimension)]
     // output_tensors: [output (token_num, hidden_dimension)]
+    printf("[INFO]\033[94m FfnLayerINT8\033[0m->forward %s:%d\n", __FILE__, __LINE__);
     ScaleList* scale_list = ((const FfnINT8Weight<T>*)ffn_weights)->scale_list_ptr;
 
     cublasINT8MMWrapper* cublas_wrapper = (cublasINT8MMWrapper*)cublas_wrapper_;
