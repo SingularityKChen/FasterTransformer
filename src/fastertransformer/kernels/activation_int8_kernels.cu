@@ -33,7 +33,9 @@ template<typename T>
 __inline__ __device__ T gelu(T x)
 {
     float cdf = 0.5f * (1.0f + tanhf((0.7978845608028654f * (x + 0.044715f * x * x * x))));
-    return x * cdf;
+    float r = x * cdf;
+    // printf("gelu(%f)=%f\n", x, r);
+    return r;
 }
 
 template<>
@@ -70,7 +72,7 @@ __global__ void add_bias_gelu_COL32_int32I_int8O(int8_t*        out,
                                                  const float*   input_deQFactor_div127_ptr,
                                                  const float*   out_scale_ptr)
 {
-
+    printf("[INFO] \033[92madd_bias_gelu_COL32_int32I_int8O\033[0m %s:%d\n", __FILE__, __LINE__);
     const float input_deQFactor_div127 = __ldg(input_deQFactor_div127_ptr);
     const float out_scale              = __ldg(out_scale_ptr);
 
@@ -157,6 +159,7 @@ void invokeAddBiasGeluCol32(int8_t*        out,
                             const float*   input_deQFactor_div127_ptr,
                             const float*   out_scale_ptr)
 {
+    printf("[INFO] \033[92minvokeAddBiasGeluCol32\033[0m %s:%d\n", __FILE__, __LINE__);
     dim3 grid(m);
     dim3 block(n / 4);
     assert(block.x <= 1024);
@@ -253,6 +256,7 @@ void invokeAddBiasGeluCol32(int8_t*       out,
                             const float*  input_deQFactor_ptr,
                             const float*  out_scale_ptr)
 {
+    printf("[INFO] \033[92minvokeAddBiasGeluCol32\033[0m %s:%d\n", __FILE__, __LINE__);
     dim3 grid;
     dim3 block;
     if (n / 4 <= 1024) {
