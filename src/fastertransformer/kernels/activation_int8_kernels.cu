@@ -33,9 +33,7 @@ template<typename T>
 __inline__ __device__ T gelu(T x)
 {
     float cdf = 0.5f * (1.0f + tanhf((0.7978845608028654f * (x + 0.044715f * x * x * x))));
-    float r = x * cdf;
-    // printf("gelu(%f)=%f\n", x, r);
-    return r;
+    return x * cdf;
 }
 
 template<>
@@ -72,7 +70,6 @@ __global__ void add_bias_gelu_COL32_int32I_int8O(int8_t*        out,
                                                  const float*   input_deQFactor_div127_ptr,
                                                  const float*   out_scale_ptr)
 {
-    printf("[INFO] \033[92madd_bias_gelu_COL32_int32I_int8O\033[0m %s:%d\n", __FILE__, __LINE__);
     const float input_deQFactor_div127 = __ldg(input_deQFactor_div127_ptr);
     const float out_scale              = __ldg(out_scale_ptr);
 
@@ -159,7 +156,6 @@ void invokeAddBiasGeluCol32(int8_t*        out,
                             const float*   input_deQFactor_div127_ptr,
                             const float*   out_scale_ptr)
 {
-    printf("[INFO] \033[92minvokeAddBiasGeluCol32\033[0m %s:%d\n", __FILE__, __LINE__);
     dim3 grid(m);
     dim3 block(n / 4);
     assert(block.x <= 1024);
@@ -211,7 +207,7 @@ __global__ void add_bias_gelu_COL32_int8IO(int8_t*       out,
                                            const float*  input_deQFactor_ptr,
                                            const float*  out_scale_ptr)
 {
-
+    // printf("[INFO] add_bias_gelu_COL32_int8IO %s:%d\n", __FILE__, __LINE__);
     const float input_deQFactor = __ldg(input_deQFactor_ptr);
     const float out_scale       = __ldg(out_scale_ptr);
 
@@ -221,26 +217,27 @@ __global__ void add_bias_gelu_COL32_int8IO(int8_t*       out,
     char4  tmp;
     for (int col_start = threadIdx.x << 2; col_start < n; col_start += (blockDim.x << 2)) {
         int   outIdx = ((col_start & 0xffffffe0) * m + (blockIdx.x << 5) + (col_start & 31)) >> 2;
-        float val;
+        float val, after_gelu;
         tmp   = __ldg(inputTmpPtr + outIdx);
         val   = static_cast<float>(tmp.x) * input_deQFactor + static_cast<float>(__ldg(bias + col_start));
-        val   = gelu(val);
-        tmp.x = float_to_int8_rn(val * out_scale);
+        after_gelu   = gelu(val);
+//        printf("%f,%f\n", val, after_gelu);
+        tmp.x = float_to_int8_rn(after_gelu * out_scale);
 
         col_start = col_start + 1;
         val       = static_cast<float>(tmp.y) * input_deQFactor + static_cast<float>(__ldg(bias + col_start));
-        val       = gelu(val);
-        tmp.y     = float_to_int8_rn(val * out_scale);
+        after_gelu       = gelu(val);
+        tmp.y     = float_to_int8_rn(after_gelu * out_scale);
 
         col_start = col_start + 1;
         val       = static_cast<float>(tmp.z) * input_deQFactor + static_cast<float>(__ldg(bias + col_start));
-        val       = gelu(val);
-        tmp.z     = float_to_int8_rn(val * out_scale);
+        after_gelu       = gelu(val);
+        tmp.z     = float_to_int8_rn(after_gelu * out_scale);
 
         col_start = col_start + 1;
         val       = static_cast<float>(tmp.w) * input_deQFactor + static_cast<float>(__ldg(bias + col_start));
-        val       = gelu(val);
-        tmp.w     = float_to_int8_rn(val * out_scale);
+        after_gelu       = gelu(val);
+        tmp.w     = float_to_int8_rn(after_gelu * out_scale);
 
         outTmpPtr[outIdx] = tmp;
     }
