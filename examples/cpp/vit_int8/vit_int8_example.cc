@@ -91,8 +91,10 @@ void test(int batch_size,
                 seq_len,
                 inter_size);
 
-    AttentionType attention_type = getAttentionType<T>(head_dim, getSMVersion(), true, seq_len);
-    printf("attention_type: %d\n", int(attention_type));
+    AttentionType attention_type = AttentionType::UNFUSED_MHA;
+    // We use unfused mha layer (0) instead of fused (2) to obtain middle results. FIXME
+    // AttentionType attention_type = getAttentionType<T>(head_dim, getSMVersion(), true, seq_len);
+    printf("\033[91mattention_type: %d\tint8_mode: %d\033[0m\n", int(attention_type), int(int8_mode));
     fastertransformer::Allocator<AllocatorType::CUDA> allocator(0);
     int                                               max_batch = batch_size;
     ViTTransformerINT8<T>*                            vit       = new ViTTransformerINT8<T>(max_batch,
@@ -140,7 +142,17 @@ void test(int batch_size,
     cuda_timer.start();
     for (int i = 0; i < ite; i++) {
         FT_LOG_INFO("[INFO] iteration %d\n", i);
+//        fs::path tmp_export_dir = fs::current_path() / "export" / "tmp";
+//        fs::path cur_export_dir = fs::current_path() / "export" / "layer_" + to_string(i);
+//        if (not fs::exists(tmp_export_dir)) {
+//            fs::create_directories(tmp_export_dir);
+//        }
+//        if (fs::exists(cur_export_dir)) {
+//            fs::remove_all(cur_export_dir);
+//        }
+//        printf("[INFO] Exporting middle data into %s.\n", tmp_export_dir);
         vit->forward(&output_tensors, &input_tensors, &params);
+//        fs::rename(tmp_export_dir, cur_export_dir);
     }
     float total_time = cuda_timer.stop();
 
