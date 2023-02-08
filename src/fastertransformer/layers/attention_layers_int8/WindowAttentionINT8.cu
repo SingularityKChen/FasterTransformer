@@ -285,7 +285,7 @@ void WindowAttentionINT8<T>::forward(TensorMap*                output_tensors,
     }
 
     const ScaleList* scale_list = ((const AttentionINT8Weight<T>*)attention_weights)->scale_list_ptr;
-
+    // compute Q, K, and V
     cublas_wrapper->Gemm(Q_buf_,
                          1,
                          batch * window_num * window_len_in_use,
@@ -367,6 +367,7 @@ void WindowAttentionINT8<T>::forward(TensorMap*                output_tensors,
         const T* bias_Q = attention_weights->query_weight.bias;
         const T* bias_K = attention_weights->query_weight.bias + dim;
         const T* bias_V = attention_weights->query_weight.bias + 2 * dim;
+        // add the bias of Q, K, and V
         invokeAddQKBiasTransform(q_buf_,
                                  k_buf_,
                                  Q_buf_,
@@ -417,7 +418,7 @@ void WindowAttentionINT8<T>::forward(TensorMap*                output_tensors,
                             scale_list->h_scale_list_[20 + 1],
                             scale_list->h_scale_list_[56 + 3]);
         }
-
+        // Q*K batch GEMM
         cublas_wrapper->Gemm(qk_buf_,
                              batch * window_num * num_head,
                              window_len_in_use,
@@ -429,7 +430,7 @@ void WindowAttentionINT8<T>::forward(TensorMap*                output_tensors,
                              scale_list->h_scale_list_[scale_list->p3_offset_ + 4],
                              q_buf_,
                              k_buf_);
-
+        // softmax
         if (shift_size != 0) {
             invokeSoftmaxWithRelPosBiasCOL32(qk_buf_,
                                              qk_buf_,
@@ -459,7 +460,7 @@ void WindowAttentionINT8<T>::forward(TensorMap*                output_tensors,
                                              &(scale_list->d_scale_list_[28 + 3]),
                                              stream_);
         }
-
+        // QK*V batch GEMM
         cublas_wrapper->Gemm(dst_buf_,
                              batch * window_num * num_head,
                              window_len_in_use,
@@ -471,7 +472,7 @@ void WindowAttentionINT8<T>::forward(TensorMap*                output_tensors,
                              scale_list->h_scale_list_[scale_list->p3_offset_ + 5],
                              qk_buf_,
                              v_buf_);
-
+        // transpose Rebuild Padding
         invokeTransposeCOL32(v_buf_,
                              dst_buf_,
                              batch * window_num,
@@ -481,7 +482,7 @@ void WindowAttentionINT8<T>::forward(TensorMap*                output_tensors,
                              &(scale_list->d_scale_list_[36 + 1]),
                              &(scale_list->d_scale_list_[36 + 3]),
                              stream_);
-
+        // Project GEMM
         cublas_wrapper->Gemm(q_buf_,
                              1,
                              batch * window_num * window_len_in_use,

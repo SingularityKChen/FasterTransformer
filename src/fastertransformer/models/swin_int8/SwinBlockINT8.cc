@@ -223,7 +223,7 @@ void SwinTransformerINT8Block<T>::forward(TensorMap*                         out
             (scalePtr->h_scale_list_[12 + 1]),
             (scalePtr->h_scale_list_[36 + 3]));
     }
-
+ // FC1 GEMM
     cublas_wrapper->Gemm((int8_t*)mlp_buf_,
                          1,
                          m,
@@ -243,7 +243,7 @@ void SwinTransformerINT8Block<T>::forward(TensorMap*                         out
                               stream_,
                               &(scalePtr->d_scale_list_[40 + 1]),
                               &(scalePtr->d_scale_list_[44 + 3]));
-
+    // FC2 GEMM
     if (version_ == 2) {
         cublas_wrapper->Gemm((int8_t*)mlp_output_,
                              1,
