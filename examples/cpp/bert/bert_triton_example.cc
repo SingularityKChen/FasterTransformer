@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2022-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@
 #include "src/fastertransformer/triton_backend/bert/BertTritonModel.h"
 #include "src/fastertransformer/utils/mpi_utils.h"
 #include "src/fastertransformer/utils/nccl_utils.h"
+#include "src/fastertransformer/utils/nvtx_utils.h"
 
 namespace ft = fastertransformer;
 
@@ -173,11 +174,11 @@ int bert_triton_example(int argc, char* argv[])
     std::cout << model->toString();
     int tensor_para_size   = model->getTensorParaSize();
     int pipeline_para_size = model->getPipelineParaSize();
-    ft::FT_CHECK_WITH_INFO(world_size == (tensor_para_size * pipeline_para_size),
-                           ft::fmtstr("World Size(%d) != Tensor Parallel Size (%d) * Pipeline Parallel Size (%d) !",
-                                      world_size,
-                                      tensor_para_size,
-                                      pipeline_para_size));
+    FT_CHECK_WITH_INFO(world_size == (tensor_para_size * pipeline_para_size),
+                       ft::fmtstr("World Size(%d) != Tensor Parallel Size (%d) * Pipeline Parallel Size (%d) !",
+                                  world_size,
+                                  tensor_para_size,
+                                  pipeline_para_size));
 
     // step 2: Initialize the NCCL
     std::pair<std::vector<ft::NcclParam>, std::vector<ft::NcclParam>> nccl_params = model->createNcclParams(node_id);

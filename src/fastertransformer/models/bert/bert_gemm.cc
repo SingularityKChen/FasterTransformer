@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
     const bool               is_append        = argc < 9 ? false : (bool)(atoi(argv[8]));
 
     const int inter_size = 4 * head_num * size_per_head;
-    ft::FT_CHECK_WITH_INFO(
+    FT_CHECK_WITH_INFO(
         head_num % tensor_para_size == 0,
         ft::fmtstr("[ERROR] head_num (%d) %% tensor_para_size (%d) != 0", head_num, tensor_para_size));
     FT_LOG_INFO("arguments:");

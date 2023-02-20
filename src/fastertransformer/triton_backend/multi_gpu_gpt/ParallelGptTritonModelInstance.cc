@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2021-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -162,10 +162,10 @@ template<typename T>
 std::shared_ptr<std::unordered_map<std::string, triton::Tensor>> ParallelGptTritonModelInstance<T>::forward(
     std::shared_ptr<std::unordered_map<std::string, triton::Tensor>> input_tensors)
 {
-    ft::FT_CHECK_WITH_INFO(input_tensors->at("input_ids").shape.size() == 2,
-                           "input_tensors->at(\"input_ids\").shape.size() == 2");
-    ft::FT_CHECK_WITH_INFO(input_tensors->at("input_lengths").shape.size() == 1,
-                           "input_tensors->at(\"input_lengths\").shape.size() == 1");
+    FT_CHECK_WITH_INFO(input_tensors->at("input_ids").shape.size() == 2,
+                       "input_tensors->at(\"input_ids\").shape.size() == 2");
+    FT_CHECK_WITH_INFO(input_tensors->at("input_lengths").shape.size() == 1,
+                       "input_tensors->at(\"input_lengths\").shape.size() == 1");
     const size_t request_batch_size     = input_tensors->at("input_ids").shape[0];
     size_t       max_request_output_len = (size_t)*std::max_element((int*)input_tensors->at("request_output_len").data,
                                                               (int*)input_tensors->at("request_output_len").data
@@ -237,16 +237,21 @@ std::shared_ptr<std::unordered_map<std::string, triton::Tensor>> ParallelGptTrit
                                           d_output_ctx_emb_}});
     }
 
-    if (stream_cb_ != nullptr) {
-        gpt_->registerCallback(triton_stream_callback<T>, this);
+    try {
+        if (stream_cb_ != nullptr) {
+            gpt_->registerCallback(triton_stream_callback<T>, this);
+        }
+
+        gpt_->forward(&output_tensors, &ft_input_tensors, gpt_weight_.get());
+
+        if (stream_cb_ != nullptr) {
+            gpt_->unRegisterCallback();
+        }
     }
-
-    gpt_->forward(&output_tensors, &ft_input_tensors, gpt_weight_.get());
-
-    if (stream_cb_ != nullptr) {
-        gpt_->unRegisterCallback();
+    catch (...) {
+        h_exception_ = std::current_exception();
+        output_tensors.insert({"error_message", ft::Tensor{ft::MEMORY_CPU, ft::TYPE_BYTES, {1}, &h_exception_}});
     }
-
     return convert_outputs(output_tensors);
 }
 

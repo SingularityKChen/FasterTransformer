@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,9 @@ private:
     AttentionType attention_type_;
 
     size_t     vocab_size_padded_;
-    const bool is_context_qk_buf_float_ = false;
+    const bool is_context_qk_buf_float_ =
+        (std::getenv("CONTEXT_ATTENTION_BMM1_HALF_ACCUM") == nullptr ||
+         std::string(std::getenv("CONTEXT_ATTENTION_BMM1_HALF_ACCUM")) != "ON");
 
     // Prompt Learning Parameters
     PromptLearningType prompt_learning_type_;

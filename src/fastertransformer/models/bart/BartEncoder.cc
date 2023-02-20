@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2019-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -218,7 +218,7 @@ template<typename T>
 void BartEncoder<T>::allocateBuffer()
 {
     if (is_allocate_buffer_ == false) {
-        token_num_ = (size_t*)allocator_->reMalloc(token_num_, sizeof(size_t) * 1, false);
+        h_pinned_token_num_ptr_ = (size_t*)allocator_->reMalloc(h_pinned_token_num_ptr_, sizeof(size_t), true, true);
         padding_offset_ =
             (int*)allocator_->reMalloc(padding_offset_, sizeof(int) * max_batch_size_ * max_seq_len_, false);
         trt_mha_padding_offset_ =
@@ -256,8 +256,8 @@ template<typename T>
 void BartEncoder<T>::allocateBuffer(size_t batch_size, size_t seq_len)
 {
     FT_LOG_DEBUG(__PRETTY_FUNCTION__);
-    token_num_      = (size_t*)allocator_->reMalloc(token_num_, sizeof(size_t) * 1, false);
-    padding_offset_ = (int*)allocator_->reMalloc(padding_offset_, sizeof(int) * batch_size * seq_len, false);
+    h_pinned_token_num_ptr_ = (size_t*)allocator_->reMalloc(h_pinned_token_num_ptr_, sizeof(size_t), true, true);
+    padding_offset_         = (int*)allocator_->reMalloc(padding_offset_, sizeof(int) * batch_size * seq_len, false);
     trt_mha_padding_offset_ =
         (int*)allocator_->reMalloc(trt_mha_padding_offset_, sizeof(int) * (2 * batch_size + 1), false);
 
@@ -290,7 +290,7 @@ template<typename T>
 void BartEncoder<T>::freeBuffer()
 {
     if (is_allocate_buffer_) {
-        allocator_->free((void**)(&token_num_));
+        allocator_->free((void**)(&h_pinned_token_num_ptr_), true);
         allocator_->free((void**)(&padding_offset_));
         allocator_->free((void**)(&trt_mha_padding_offset_));
 
@@ -464,8 +464,8 @@ void BartEncoder<T>::forward(TensorMap*                  output_tensors,
                     attention_mask_, sequence_lengths, local_batch_size, request_seq_len, stream_);
 
                 sync_check_cuda_error();
-                invokeGetPaddingOffset(&h_token_num,
-                                       token_num_,
+                invokeGetPaddingOffset(h_pinned_token_num_ptr_,
+                                       &h_token_num,
                                        padding_offset_,
                                        sequence_lengths,
                                        local_batch_size,

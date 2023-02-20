@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2020-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,10 +151,7 @@ void GptJ<T>::allocateBuffer(
         context_decoder_output_buf_, sizeof(T) * batchxbeam * max_input_len * hidden_units_, false));
     output_log_probs_buf_ =
         (float*)(allocator_->reMalloc(output_log_probs_buf_, sizeof(float) * batchxbeam * max_seq_len, false));
-
-    if (generation_should_stop_ == nullptr) {
-        cudaMallocHost(&generation_should_stop_, 1 * sizeof(bool));
-    }
+    generation_should_stop_ = (bool*)(allocator_->reMalloc(generation_should_stop_, sizeof(bool), true, true));
 
     is_allocate_buffer_ = true;
 }
@@ -206,7 +203,7 @@ void GptJ<T>::freeBuffer()
         allocator_->free((void**)(&context_decoder_output_buf_));
         allocator_->free((void**)(&output_log_probs_buf_));
 
-        cudaFreeHost(generation_should_stop_);
+        allocator_->free((void**)(&generation_should_stop_), true);
 
         is_allocate_buffer_ = false;
     }
@@ -405,6 +402,7 @@ void GptJ<T>::forward(std::unordered_map<std::string, Tensor>*       output_tens
     //      temperature [1] or [batch_size] on cpu, optional, float.
     //      len_penalty [1] or [batch_size] on cpu, optional, float.
     //      repetition_penalty [1] or [batch_size] on cpu, optional, float.
+    //      min_length [1] or [batch_size] on cpu, optional, int
     //      random_seed [1] or [batch_size] on cpu, optional, unsigned long long int.
     //      request_prompt_lengths [batch_size], optional
     //      request_prompt_embedding [batch_size, max_prompt_length, hidden_units], float, optional

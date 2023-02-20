@@ -214,30 +214,32 @@ protected:
         return ft::Tensor(mtype, dtype, shape, data);
     };
 
+    template<typename T>
     ft::Tensor toHost(ft::Tensor& device_tensor)
     {
         if (device_tensor.data == nullptr) {
             return ft::Tensor();
         }
         ft::Tensor host_tensor = createTensor(ft::MEMORY_CPU, device_tensor.type, device_tensor.shape);
-        ft::cudaAutoCpy(host_tensor.getPtr<char>(), device_tensor.getPtr<char>(), host_tensor.sizeBytes(), stream);
+        ft::cudaAutoCpy(host_tensor.getPtr<T>(), device_tensor.getPtr<T>(), host_tensor.size(), stream);
         cudaStreamSynchronize(stream);
         return host_tensor;
     };
 
+    template<typename T>
     ft::Tensor toDevice(ft::Tensor& host_tensor)
     {
         if (host_tensor.data == nullptr) {
             return ft::Tensor();
         }
         ft::Tensor device_tensor = createTensor(ft::MEMORY_GPU, host_tensor.type, host_tensor.shape);
-        ft::cudaAutoCpy(device_tensor.getPtr<char>(), host_tensor.getPtr<char>(), host_tensor.sizeBytes(), stream);
+        ft::cudaAutoCpy(device_tensor.getPtr<T>(), host_tensor.getPtr<T>(), host_tensor.size(), stream);
         return device_tensor;
     };
 
     void copyTensor(ft::Tensor& dst, ft::Tensor& src)
     {
-        ft::FT_CHECK_WITH_INFO(
+        FT_CHECK_WITH_INFO(
             src.sizeBytes() == dst.sizeBytes(),
             ft::fmtstr("src and dst has different size (%ld != %ld)", src.sizeBytes(), dst.sizeBytes()));
         ft::cudaAutoCpy(dst.getPtr<char>(), src.getPtr<char>(), src.sizeBytes(), stream);

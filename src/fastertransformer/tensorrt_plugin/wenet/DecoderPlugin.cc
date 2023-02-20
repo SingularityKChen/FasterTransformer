@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2022-2023, NVIDIA CORPORATION. All rights reserved.
  * Copyright (c) 2022.  Authored by Yuqing Ding.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -67,8 +67,7 @@ void WenetDecoderPlugin::CreateFT()
 #endif
 
     // Wenet DecoderWeight
-    std::string weightFilePath = "/weight/dec/";
-    // std::string weightFilePath = m_.weightFilePath;
+    std::string weightFilePath = m_.weightFilePath;
     FT_LOG_WARNING("The default weight file path is %s. Change it accordingly, otherwise model will fail to load! \n",
                    weightFilePath.c_str());
     if (m_.useFP16) {

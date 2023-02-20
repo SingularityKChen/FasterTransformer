@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022, NVIDIA CORPORATION.  All rights reserved.
+ * Copyright (c) 2022-2023, NVIDIA CORPORATION.  All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,15 +115,22 @@ T5EncoderTritonModelInstance<T>::forward(std::shared_ptr<std::unordered_map<std:
 
     if (input_tensors->count("ia3_tasks")) {
         const auto num_ia3_tasks = t5_encoder_weight_->getNumIA3Tasks();
-        ft::FT_CHECK_WITH_INFO(num_ia3_tasks > 0, "Cannot request ia3_tasks, model has no IA3 adapters");
+        FT_CHECK_WITH_INFO(num_ia3_tasks > 0, "Cannot request ia3_tasks, model has no IA3 adapters");
 
         const bool is_within_range = ft::invokeCheckRange<int>(
             d_input_ia3_tasks_, request_batch_size, 0, num_ia3_tasks - 1, d_within_range_, t5_encoder_->getStream());
-        ft::FT_CHECK_WITH_INFO(is_within_range,
-                               ft::fmtstr("Requested IA3 tasks aren't in the range [0, %d).", num_ia3_tasks));
+        FT_CHECK_WITH_INFO(is_within_range,
+                           ft::fmtstr("Requested IA3 tasks aren't in the range [0, %d).", num_ia3_tasks));
     }
-    t5_encoder_->forward(&encoder_output_tensors, &encoder_input_tensors, t5_encoder_weight_.get());
-    cudaStreamSynchronize(t5_encoder_->getStream());
+    try {
+        t5_encoder_->forward(&encoder_output_tensors, &encoder_input_tensors, t5_encoder_weight_.get());
+        cudaStreamSynchronize(t5_encoder_->getStream());
+    }
+    catch (...) {
+        h_exception_ = std::current_exception();
+        encoder_output_tensors.insert(
+            {"error_message", ft::Tensor{ft::MEMORY_CPU, ft::TYPE_BYTES, {1}, &h_exception_}});
+    }
 
     return convert_outputs(encoder_output_tensors);
 }
