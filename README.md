@@ -10,10 +10,10 @@ This repository provides a script to retrieve input and output data of functions
     ``` 
 
 - Before obtaining specific experimental data, you need to make some preparations (refer to the guidance for ViT Quantization Toolkit).
-###-1. According to the official guidance of FasterTransformer, configure a Docker environment suitable for your GPU.
-  -2. Download Pre-trained model (Google's Official Checkpoint)：
+  - 1. According to the official guidance of FasterTransformer, configure a Docker environment suitable for your GPU.
+  - 2. Download Pre-trained model (Google's Official Checkpoint)：
       *In the experiment, we used the imagenet21k pre-train models 'ViT-B_16.npz'. Please download it and place it in the examples/pytorch/vit/ViT-quantization directory.
-  -3. Data preparation (We placed the data in the directory "examples/pytorch/vit/ViT-quantization/data"):
+  - 3. Data preparation (We placed the data in the directory "examples/pytorch/vit/ViT-quantization/data"):
       *We use standard ImageNet dataset, you can download it from http://image-net.org/:
       *For standard folder dataset, move validation images to labeled sub-folders. The file structure should look like:
   ```bash
@@ -38,7 +38,7 @@ This repository provides a script to retrieve input and output data of functions
       │   └── ...
       └── ...
   ```
-    -4. Calibration:
+    - 4. Calibration:
       *You can start the Calibration process by following the command below, which will generate a corresponding ViT-B_16_calib.pth file to prepare for the next step of Evaluation.
   ```bash
   sh examples/pytorch/vit/ViT-quantization/run_calib.sh
